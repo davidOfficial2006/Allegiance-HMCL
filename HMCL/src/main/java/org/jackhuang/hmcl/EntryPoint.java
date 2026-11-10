@@ -10,6 +10,7 @@ import org.jackhuang.hmcl.util.io.FileUtils;
 import org.jackhuang.hmcl.util.io.JarUtils;
 import org.jackhuang.hmcl.util.io.TLSSecurity;
 import org.jackhuang.hmcl.util.platform.OperatingSystem;
+import org.jackhuang.hmcl.util.platform.WindowsLauncherRuntime;
 
 import javax.swing.JOptionPane;
 import java.io.IOException;
@@ -30,6 +31,7 @@ public final class EntryPoint {
 
     /// Initializes TLS protection before downloading dependencies and starting the launcher.
     public static void main(String[] args) {
+        WindowsLauncherRuntime.initialize();
         System.getProperties().putIfAbsent("java.net.useSystemProxies", "true");
         System.getProperties().putIfAbsent("javafx.autoproxy.disable", "true");
         System.getProperties().putIfAbsent("http.agent", "HMCL/" + Metadata.VERSION);

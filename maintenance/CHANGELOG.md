@@ -1,5 +1,13 @@
 # 定制维护记录
 
+## maint-20261110.2（内置运行环境的 EXE 交付版）
+
+- 使用 jpackage 和经 SHA256 核对的 BellSoft JRE Full，打包 Java 21 与 JavaFX。
+- 在启动入口初始化 Windows 运行环境设置，尊重显式覆盖。
+- 直接运行 EXE 到主界面，测试时移除系统 Java 路径，确认加载私有运行环境。
+- 玩家 Release 附件收敛为源码 ZIP 与 EXE 玩家 ZIP；保留所有许可证。
+
+
 ## maint-20261103.3（游戏进程运行环境修复候选）
 
 - 真实启动已通过依赖检查和生产补丁同步，但 GML 初始化因 Windows Java 本地管道路径报 Invalid argument: connect 崩溃。

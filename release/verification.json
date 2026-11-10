@@ -1,0 +1,24 @@
+{
+  "version": "maint-20261110.2",
+  "tested_at_utc": "2026-11-10T16:43:16.241868+00:00",
+  "selected_java_tests": {
+    "tests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "exe_startup": "passed; launcher home screen observed",
+  "test_environment": {
+    "system_java_path_removed": true,
+    "java_home_set_to_nonexistent_directory": true,
+    "java_option_environment_removed": true
+  },
+  "loaded_runtime_modules": [
+    "runtime/bin/server/jvm.dll",
+    "runtime/bin/glass.dll",
+    "runtime/bin/javafx_font.dll"
+  ],
+  "bundled_runtime": "BellSoft Liberica JRE Full 21.0.13.0.3+5",
+  "runtime_archive_sha256": "00162ae246569f2ccccd12c464133e6cca95234e499542a5d29274d519725d31",
+  "gameplay_retested_in_this_delivery": false
+}

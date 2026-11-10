@@ -1,52 +1,53 @@
 # Allegiance HMCL
 
-基于 [HMCL](https://github.com/HMCL-dev/HMCL) 的 Allegiance 定制启动器，加入 DeceasedCraft 客户端同步、受管理 Mod 备份和单 Mod 回档功能。这是非官方维护版本，保留 HMCL 原作者版权声明与项目许可证。
+基于 [HMCL](https://github.com/HMCL-dev/HMCL) 的 Allegiance 非官方定制启动器，支持 DeceasedCraft 客户端同步、受管理 Mod 备份和单 Mod 回档。保留原作者版权声明与许可证。
 
-## 下载并开始使用
+## 玩家下载
 
-到 [最新 Release](https://github.com/davidOfficial2006/Allegiance-HMCL/releases/latest) 下载 `Allegiance-HMCL-maint-20261103.3-Windows.zip`。解压后双击“启动器.cmd”。当前版本使用 JAR 和 CMD 入口，需要事先安装 64 位 Java 21；没有附带 Java 或 EXE 包装。
+前往 [最新版 Release](https://github.com/davidOfficial2006/Allegiance-HMCL/releases/latest)，下载 **Allegiance-HMCL-maint-20261110.2-Windows-x64.zip**。完整解压后打开文件夹内的 **Allegiance-HMCL.exe**。
 
-1. 准备 Java 21，解压启动器压缩包。
-2. 双击“启动器.cmd”，在 HMCL 中添加自己的账号。
-3. 自行获取整合包 ZIP，拖入启动器导入。
-4. 点击启动，先补齐 Minecraft、Forge 和整合包依赖，再识别整合包、检查服务器发布清单并同步补丁。
+**已经内置启动器所需的 Java 21 和 JavaFX，无需安装 Java，也不使用 CMD。** EXE、app、runtime 必须保持在同一文件夹，不能只复制一个 EXE。需要桌面入口时创建快捷方式。
 
-启动器默认连接 `https://sync.decreasedcraftallegiance.com` 的公开同步接口；玩家无需后台管理密钥。整合包及 Mod 不包含在本仓库或玩家压缩包中。
+在启动器中添加账号，自行获取整合包 ZIP 并导入，随后点击启动。Minecraft 所需的 Java、Forge 和其他游戏依赖仍由 HMCL 按实例要求准备。
 
-## 当前维护版本
+支持 Windows 10/11 x64。不包含 Minecraft 整合包、Mod、账号、存档或后台管理密钥。默认连接 `https://sync.decreasedcraftallegiance.com` 的公开同步接口。
 
-`maint-20261103.3` 保留原构建产物，未为了发布重新替换二进制。JAR SHA256：
+Release 仅提供两个附件：对应源码 ZIP 和包含 EXE、Java、JavaFX 的玩家 ZIP。文件 SHA256 列在 Release 说明中。
 
-```text
-0c396d4f388b7f32c197fd02ee6f78229d3e211178bb1dab282d8521e4d7b742
-```
+## 样式定制
 
-- CurseForge 元数据统一选择官方接口或 MCIM，无密钥时使用 MCIM。
-- 并发读取元数据，已安装 Mod 优先检查本地文件，避免每次启动重复排队查询。
-- 使用实际实例目录、DCTweaks 身份及原始整合包清单或目录线索识别版本；无法识别时提示并继续启动。
-- 按服务器公开清单校验和同步补丁，替换受管理 JAR 前备份，支持单 Mod 回档。
-- 保留玩家额外客户端 Mod；不自动替换 DCTweaks，冲突文件由玩家确认处理。
-- Windows 维护入口明确设置的系统证书类型和短本地管道目录同时传给游戏 Java，修复已复现的初始化崩溃。
+先在 EXE 的设置里调整背景、主题、配色。素材建议保存在同目录“样式素材”。修改后退出启动器让配置保存，再检查 `.hmcl/config/launcher-settings.json`、`.hmcl/themes`、`.hmcl/user/themes` 和素材文件。详细说明见 [release/DELIVERY.md](release/DELIVERY.md)。
 
-## 验证范围
+不要提交账号配置或登录信息。源码修改和发布包重建会在确认样式后进行。
 
-27 项选定 Java 回归测试、4 项维护脚本测试通过。已实际启动 DeceasedCraft 5.11.19 到主菜单，并通过公开接口完成配置补丁同步与备份检查。随后使用者反馈本地测试无问题；本仓库不把该反馈扩写为已独立完成全新导入、实际进服和生产单 Mod 回档的全部验收。
+## 当前维护行为
 
-## 源码与维护
+- 统一官方/MCIM 元数据来源；没有官方密钥时使用 MCIM。
+- 并发读取元数据，已有 Mod 先检查本地文件。
+- 使用真实实例目录、DCTweaks 身份及原始整合包清单或目录线索识别基础版本。识别不了时提示并继续启动。
+- 必要游戏依赖补齐后才进行同步。受管理文件先下载校验、再备份替换；保留单 Mod 回档。
+- 不自动替换 DCTweaks，保留额外客户端 Mod；冲突文件需要确认，不自动删除。
+- Windows 运行设置在 JavaFX 初始化前生效，并传递给游戏 JVM。
+- 私有 Java/JavaFX 运行环境随玩家包交付，EXE 固定使用包内环境。
 
-源码由本地已验证构建的源码归档导入。原 HMCL 上游的确切提交未核实；导入基线本身已包含早期定制，不能当作未经修改的官方上游。`upstream/imported-customized-20261102` 保留该导入基线，`codex/hmcl-maintenance` 维护定制，`main` 指向发布源码。
+## 构建
 
-原构建源码记录：`1bf173721650532ee74bc8743b2f310eb711c6ae`，供追溯旧本地仓库；本仓库的提交编号会不同。Release 同时提供与 JAR 对应的原始源码归档和校验文件。
-
-使用 JDK 21，在 Windows PowerShell 构建相同版本号：
+需要 Windows、JDK 21 和 Python 3.11+。在仓库根目录执行：
 
 ```powershell
-$env:VERSION_ROOT = '3.17-allegiance.maint-20261103.3'
+$env:VERSION_ROOT = '3.17-allegiance.maint-20261110.2'
 .\gradlew.bat :HMCLCore:test --tests 'org.jackhuang.hmcl.sync.AllegianceSyncTest' --tests 'org.jackhuang.hmcl.addon.repository.CurseForge*Test' --tests 'org.jackhuang.hmcl.launch.DefaultLauncherRuntimeTest' :HMCL:shadowJar
+python release/build_windows.py --jdk $env:JAVA_HOME --jar "$PWD/HMCL/build/libs/HMCL-3.17-allegiance.maint-20261110.2.SNAPSHOT.jar" --output "$PWD/build/player" --work "$PWD/build/runtime-package"
 ```
 
-更多维护流程见 [maintenance/README.md](maintenance/README.md)。该文档保留了原工作区归档脚本的布局要求；在独立仓库进行日常编译时使用上面的 Gradle 命令即可。
+打包脚本下载官方 BellSoft Liberica JRE Full，核对固定 SHA256，并通过 JDK jpackage 生成应用镜像。可用 `--runtime-archive` 指定已经下载的同一官方 ZIP；不会覆盖已有交付目录或玩家数据。供应者链接、版本和校验值随包记录，运行环境许可证保留在 runtime 中。
 
-## 许可证与致谢
+## 验证与来源
 
-依据源码所附 [LICENSE](LICENSE)（GNU GPLv3 及 HMCL 附加条款），保留原作者署名。项目名称及版本号标明 Allegiance 定制，以区别 HMCL 官方版本。上游文档保留于 [docs](docs/README_zh_Hans.md)。
+28 项选定 Java 回归测试通过。已实际直接运行 EXE 到 HMCL 主界面，测试进程移除了系统 Java 路径并将 JAVA_HOME 指向不存在目录；进程加载的 JVM 与 JavaFX DLL 均来自包内 runtime。详见 [release/verification.json](release/verification.json)。本次未重新进行完整游戏进服验证；之前维护版已验证整合包主菜单和生产配置补丁同步，使用者反馈测试无问题。
+
+`main` 为发布源码，`codex/hmcl-maintenance` 保留定制维护分支，`upstream/imported-customized-20261102` 保留早期导入基线。导入基线已有定制，不能当作未修改的官方上游，原始上游确切提交尚未核实。
+
+## 许可证
+
+参见 [LICENSE](LICENSE)：GNU GPLv3 与 HMCL 附加条款。名称和版本标明 Allegiance 定制，不代表 HMCL 官方发布。原上游文档保留于 [docs](docs/README_zh_Hans.md)。
