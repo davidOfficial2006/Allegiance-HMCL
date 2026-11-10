@@ -100,11 +100,13 @@ public final class Controllers {
     /// For official builds, first access checks integrity, asynchronously if no result is cached.
     /// Failed verification changes the title to indicate a modified build; asynchronous results
     /// are applied on the JavaFX application thread.
+    /// The hmcl.window.title JVM property optionally overrides the initial displayed title.
     public static ReadOnlyStringProperty launcherTitleProperty() {
         if (launcherTitle == null) {
             launcherTitle = new SimpleStringProperty(Controllers.class, "launcherTitle", Metadata.OFFICIAL_BUILD
                     ? i18n("launcher.title", Metadata.VERSION)
                     : i18n("launcher.title.unofficial", Metadata.VERSION));
+            launcherTitle.set(System.getProperty("hmcl.window.title", launcherTitle.get()));
             if (Metadata.OFFICIAL_BUILD) {
                 @Nullable Boolean selfVerified = IntegrityChecker.getSelfVerified();
                 if (selfVerified != null) {

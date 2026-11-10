@@ -1,5 +1,5 @@
 {
-  "version": "maint-20261110.2",
+  "version": "maint-20261110.3",
   "tested_at_utc": "2026-11-10T16:43:16.241868+00:00",
   "selected_java_tests": {
     "tests": 28,
@@ -20,5 +20,15 @@
   ],
   "bundled_runtime": "BellSoft Liberica JRE Full 21.0.13.0.3+5",
   "runtime_archive_sha256": "00162ae246569f2ccccd12c464133e6cca95234e499542a5d29274d519725d31",
-  "gameplay_retested_in_this_delivery": false
+  "gameplay_retested_in_this_delivery": false,
+  "branding_verification": {
+    "tested_at_utc": "2026-11-10T17:07:19.336203+00:00",
+    "build": "passed",
+    "exe_icon_frames_embedded": 7,
+    "png_transparency": "retained",
+    "native_title_override": "Chinese title observed in isolated EXE window",
+    "window_icon": "Provided icon observed in title bar",
+    "selected_java_tests": "28 passed in prior runtime delivery; not rerun for image resources and one property override",
+    "default_title": "unchanged without override"
+  }
 }

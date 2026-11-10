@@ -34,22 +34,24 @@ def build(args):
     if target.exists():
         raise RuntimeError('Output already exists; refusing to overwrite launcher or player data')
     args.work.mkdir(parents=True, exist_ok=True)
-    archive = args.runtime_archive or args.work / RUNTIME['name']
-    if not archive.exists():
-        request = urllib.request.Request(RUNTIME['url'], headers={'User-Agent': 'Allegiance-runtime-packager'})
-        with urllib.request.urlopen(request, timeout=180) as response, archive.open('xb') as out:
-            shutil.copyfileobj(response, out)
-    if digest(archive) != RUNTIME['sha256']:
-        raise RuntimeError('Bundled runtime SHA256 does not match its pinned official asset')
-    runtime_parent = args.work / 'runtime'
-    if not runtime_parent.exists():
-        runtime_parent.mkdir()
-        with zipfile.ZipFile(archive) as z:
-            for name in z.namelist():
-                if not (runtime_parent / name).resolve().is_relative_to(runtime_parent.resolve()):
-                    raise RuntimeError('Invalid runtime archive path')
-            z.extractall(runtime_parent)
-    runtime = next(p for p in runtime_parent.iterdir() if (p / 'bin/java.exe').is_file())
+    runtime = args.runtime_image
+    if runtime is None:
+        archive = args.runtime_archive or args.work / RUNTIME['name']
+        if not archive.exists():
+            request = urllib.request.Request(RUNTIME['url'], headers={'User-Agent': 'Allegiance-runtime-packager'})
+            with urllib.request.urlopen(request, timeout=180) as response, archive.open('xb') as out:
+                shutil.copyfileobj(response, out)
+        if digest(archive) != RUNTIME['sha256']:
+            raise RuntimeError('Bundled runtime SHA256 does not match its pinned official asset')
+        runtime_parent = args.work / 'runtime'
+        if not runtime_parent.exists():
+            runtime_parent.mkdir()
+            with zipfile.ZipFile(archive) as z:
+                for name in z.namelist():
+                    if not (runtime_parent / name).resolve().is_relative_to(runtime_parent.resolve()):
+                        raise RuntimeError('Invalid runtime archive path')
+                z.extractall(runtime_parent)
+        runtime = next(p for p in runtime_parent.iterdir() if (p / 'bin/java.exe').is_file())
     listed = subprocess.check_output([str(runtime / 'bin/java.exe'), '--list-modules'], text=True)
     modules = {line.split('@')[0] for line in listed.splitlines()}
     required = {'javafx.controls', 'javafx.fxml', 'javafx.media', 'javafx.swing', 'javafx.web', 'jdk.crypto.mscapi'}
@@ -74,12 +76,18 @@ def build(args):
                '--dest', str(args.output), '--input', str(input_dir), '--main-jar', 'Allegiance-HMCL.jar',
                '--main-class', 'org.jackhuang.hmcl.Main', '--runtime-image', str(runtime),
                '--app-version', '3.17.1110', '--vendor', 'Allegiance Community',
+               '--icon', str(SOURCE / 'release/branding/launcher.ico'),
                '--description', 'Unofficial HMCL launcher with Allegiance client sync']
     for option in options:
         command += ['--java-options', option]
     subprocess.run(command, check=True)
+    config = target / 'app/Allegiance-HMCL.cfg'
+    with config.open('a', encoding='utf-8') as stream:
+        stream.write('\n# Optional window title. Remove the leading # to enable, then restart.\n'
+                     '# java-options=-Dhmcl.window.title=DecreasedCraft Allegiance\n')
     shutil.copyfile(SOURCE / 'LICENSE', target / 'LICENSE')
     shutil.copyfile(SOURCE / 'release/DELIVERY.md', target / '使用说明.md')
+    shutil.copyfile(SOURCE / 'release/TITLE-BAR.md', target / '修改标题栏说明.md')
     (target / '样式素材').mkdir()
     info = {'version': args.version, 'runtime': RUNTIME, 'launcher_jar_sha256': digest(args.jar),
             'architecture': 'windows-x64', 'entry': 'Allegiance-HMCL.exe', 'bundled_javafx': True}
@@ -94,5 +102,6 @@ if __name__ == '__main__':
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--work', type=Path, required=True)
     parser.add_argument('--runtime-archive', type=Path)
-    parser.add_argument('--version', default='maint-20261110.2')
+    parser.add_argument('--runtime-image', type=Path, help='Reuse the verified runtime from an earlier delivery')
+    parser.add_argument('--version', default='maint-20261110.3')
     build(parser.parse_args())

@@ -1,5 +1,12 @@
 # 定制维护记录
 
+## maint-20261110.3（图标与标题栏定制）
+
+- 使用提供的透明 PNG 转换 Windows ICO，覆盖 EXE、任务栏/窗口和标题栏图标资源。
+- 支持 hmcl.window.title JVM 参数，交付版配置可编辑标题文字。
+- 保留默认版本标题；标题测试使用独立副本，不修改玩家的现有外观配置。
+
+
 ## maint-20261110.2（内置运行环境的 EXE 交付版）
 
 - 使用 jpackage 和经 SHA256 核对的 BellSoft JRE Full，打包 Java 21 与 JavaFX。
