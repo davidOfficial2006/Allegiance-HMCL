@@ -1,0 +1,202 @@
+// SPDX-FileCopyrightText: Copyright (C) 2020 The HMCL Authors
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-HMCL
+package org.jackhuang.hmcl.ui.construct;
+
+import javafx.beans.InvalidationListener;
+import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import org.jackhuang.hmcl.ui.FXUtils;
+import org.jackhuang.hmcl.ui.SVG;
+import org.jackhuang.hmcl.util.javafx.MappedObservableList;
+import org.jetbrains.annotations.Nullable;
+
+public class ComponentList extends Control implements NoPaddingComponent {
+
+    public ComponentList() {
+        getStyleClass().add("options-list");
+    }
+
+    private final ObservableList<Node> content = FXCollections.observableArrayList();
+
+    public ObservableList<Node> getContent() {
+        return content;
+    }
+
+    @Override
+    public Orientation getContentBias() {
+        return Orientation.HORIZONTAL;
+    }
+
+    @Override
+    protected javafx.scene.control.Skin<?> createDefaultSkin() {
+        return new Skin(this);
+    }
+
+    private static final class Skin extends ControlSkinBase<ComponentList> {
+        private static final PseudoClass PSEUDO_CLASS_FIRST = PseudoClass.getPseudoClass("first");
+        private static final PseudoClass PSEUDO_CLASS_LAST = PseudoClass.getPseudoClass("last");
+
+        private final ObservableList<Node> list;
+
+        Skin(ComponentList control) {
+            super(control);
+
+            list = MappedObservableList.create(control.getContent(), node -> {
+                Pane wrapper;
+                if (node instanceof ComponentSublist sublist) {
+                    sublist.getStyleClass().remove("options-list");
+                    sublist.getStyleClass().add("options-sublist");
+                    wrapper = new ComponentSublistWrapper(sublist);
+                } else {
+                    wrapper = new ItemWrapper(node);
+                }
+
+                wrapper.getStyleClass().add("options-list-item");
+                wrapper.visibleProperty().bind(node.visibleProperty());
+                wrapper.managedProperty().bind(node.managedProperty());
+                wrapper.visibleProperty().addListener(ignored -> updateStyle());
+                wrapper.managedProperty().addListener(ignored -> updateStyle());
+
+                if (node.getProperties().get("ComponentList.vgrow") instanceof Priority priority) {
+                    VBox.setVgrow(wrapper, priority);
+                }
+
+                if (node instanceof NoPaddingComponent || node.getProperties().containsKey("ComponentList.noPadding")) {
+                    wrapper.getStyleClass().add("no-padding");
+                }
+                return wrapper;
+            });
+
+            updateStyle();
+            list.addListener((InvalidationListener) o -> updateStyle());
+
+            VBox vbox = new VBox();
+            vbox.setFillWidth(true);
+            Bindings.bindContent(vbox.getChildren(), list);
+            node = vbox;
+        }
+
+        private Node prevFirstItem;
+        private Node prevLastItem;
+
+        private void updateStyle() {
+            Node firstItem;
+            Node lastItem;
+
+            firstItem = null;
+            lastItem = null;
+            for (Node item : list) {
+                if (!item.isVisible() || !item.isManaged()) {
+                    continue;
+                }
+
+                if (firstItem == null) {
+                    firstItem = item;
+                }
+                lastItem = item;
+            }
+
+            if (firstItem != prevFirstItem) {
+                if (prevFirstItem != null)
+                    prevFirstItem.pseudoClassStateChanged(PSEUDO_CLASS_FIRST, false);
+                if (firstItem != null)
+                    firstItem.pseudoClassStateChanged(PSEUDO_CLASS_FIRST, true);
+                prevFirstItem = firstItem;
+            }
+
+            if (lastItem != prevLastItem) {
+                if (prevLastItem != null)
+                    prevLastItem.pseudoClassStateChanged(PSEUDO_CLASS_LAST, false);
+                if (lastItem != null)
+                    lastItem.pseudoClassStateChanged(PSEUDO_CLASS_LAST, true);
+                prevLastItem = lastItem;
+            }
+        }
+    }
+
+    public static Node createComponentListTitle(String title) {
+        return createComponentListTitle(title, null);
+    }
+
+    public static Node createComponentListTitle(String title, @Nullable String helpMessage) {
+        HBox node = new HBox(4);
+        node.setAlignment(Pos.CENTER_LEFT);
+        node.setPadding(new Insets(8, 0, 0, 0));
+
+        {
+            Label advanced = new Label(title);
+            node.getChildren().setAll(advanced);
+        }
+
+        if (helpMessage != null) {
+            var helpIcon = new StackPane(SVG.HELP.createIcon(16));
+            FXUtils.installFastTooltip(helpIcon, helpMessage);
+            node.getChildren().add(helpIcon);
+        }
+
+        return node;
+    }
+
+    public static void setVgrow(Node node, Priority priority) {
+        node.getProperties().put("ComponentList.vgrow", priority);
+    }
+
+    public static void setNoPadding(Node node) {
+        node.getProperties().put("ComponentList.noPadding", true);
+    }
+
+    /// Clips ordinary and expandable rows to their first background fill's radii and insets.
+    /// Removes the clip for square or absent fills; the list's external shadow is unaffected.
+    static void updateRowClip(Region row) {
+        @Nullable Background background = row.getBackground();
+        if (background == null || background.getFills().isEmpty()
+                || background.getFills().get(0).getRadii().equals(CornerRadii.EMPTY)) {
+            row.setClip(null);
+            return;
+        }
+
+        BackgroundFill fill = background.getFills().get(0);
+        Region clip = row.getClip() instanceof Region region ? region : new Region();
+        clip.setPickOnBounds(false);
+        clip.setBackground(new Background(new BackgroundFill(Color.BLACK, fill.getRadii(), fill.getInsets())));
+        clip.resize(row.getWidth(), row.getHeight());
+        row.setClip(clip);
+    }
+
+    /// Wraps a component list row and clips its contents to rounded background corners.
+    private static final class ItemWrapper extends StackPane {
+        /// The row content displayed by this wrapper.
+        private final Node content;
+
+        /// Creates a row wrapper for the given content node.
+        private ItemWrapper(Node content) {
+            super(content);
+            this.content = content;
+            backgroundProperty().addListener(observable -> updateRowClip(this));
+        }
+
+        /// Keeps the clip aligned with the row without adding a managed layout child.
+        @Override
+        public void resize(double width, double height) {
+            super.resize(width, height);
+            if (getClip() instanceof Region clip)
+                clip.resize(width, height);
+        }
+
+        /// Propagates the child content bias so wrapped text can compute height from row width.
+        @Override
+        public Orientation getContentBias() {
+            return content.getContentBias();
+        }
+    }
+}

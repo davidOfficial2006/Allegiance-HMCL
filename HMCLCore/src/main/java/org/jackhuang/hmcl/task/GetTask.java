@@ -1,0 +1,94 @@
+// SPDX-FileCopyrightText: Copyright (C) 2020 The HMCL Authors
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-HMCL
+package org.jackhuang.hmcl.task;
+
+import com.google.gson.reflect.TypeToken;
+import org.glavo.url.WebURL;
+import org.jackhuang.hmcl.download.DownloadCandidates;
+import org.jackhuang.hmcl.util.gson.JsonUtils;
+import org.jackhuang.hmcl.util.io.NetworkUtils;
+import org.jackhuang.hmcl.util.io.UrlResponseInfo;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+/// Downloads text, decoding HTTP responses using their declared charset or UTF-8.
+public final class GetTask extends FetchTask<String> {
+
+    /// Creates a text download task for one URL.
+    public GetTask(WebURL url) {
+        this(List.of(url));
+        setName(url.toString());
+    }
+
+    /// Creates a text download task with a snapshot of nonempty candidate URLs in attempt order.
+    public GetTask(List<WebURL> url) {
+        super(DownloadCandidates.ofUrls(url));
+        setName(url.get(0).toString());
+    }
+
+    public GetTask(DownloadCandidates candidates) {
+        super(candidates);
+        setName(candidates.getPrimaryCandidate().displayUrl());
+    }
+
+    @Override
+    protected EnumCheckETag shouldCheckETag() {
+        return EnumCheckETag.CHECK_E_TAG;
+    }
+
+    @Override
+    protected void useCachedResult(Path cachedFile) throws IOException {
+        setResult(Files.readString(cachedFile));
+    }
+
+    @Override
+    protected Context getContext(@Nullable UrlResponseInfo response, boolean checkETag, @Nullable String bmclapiHash) {
+        long length = -1;
+        if (response != null)
+            length = response.headers().firstValueAsLong("content-length").orElse(-1L);
+        final var baos = new ByteArrayOutputStream(length <= 0 ? 8192 : (int) length);
+
+        return new Context() {
+            @Override
+            public void reset() throws IOException {
+                baos.reset();
+            }
+
+            @Override
+            public void write(byte[] buffer, int offset, int len) {
+                baos.write(buffer, offset, len);
+            }
+
+            @Override
+            public void close() throws IOException {
+                if (!isSuccess()) return;
+
+                Charset charset = StandardCharsets.UTF_8;
+                if (response != null)
+                    charset = NetworkUtils.getCharsetFromContentType(response.headers().firstValue("content-type").orElse(null));
+
+                String result = baos.toString(charset);
+                setResult(result);
+
+                if (checkETag) {
+                    repository.cacheText(response, result);
+                }
+            }
+        };
+    }
+
+    public <T> Task<T> thenGetJsonAsync(Class<T> type) {
+        return thenGetJsonAsync(TypeToken.get(type));
+    }
+
+    public <T> Task<T> thenGetJsonAsync(TypeToken<T> type) {
+        return thenApplyAsync(jsonString -> JsonUtils.fromNonNullJson(jsonString, type));
+    }
+}
