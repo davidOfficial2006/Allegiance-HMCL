@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/HMCL-dev/HMCL",
+  "upstream_commit": null,
+  "baseline_tag": "hmcl-imported-20261102",
+  "baseline_commit": "d594e5183a1e1a694ef844d8c79484f3db62e2b9",
+  "baseline_kind": "imported-customized-source-snapshot",
+  "version_root": "3.17",
+  "note": "The imported HMCL-main directory had no Git metadata and already contained local changes. Do not treat this baseline as an exact upstream revision.",
+  "outer_git_issue": "Git auto-gc reported an existing corrupt loose object 983ceaf426a4e616f793869072921d9849131652. Source subtree archive succeeded; whole-repository history is not certified healthy."
+}

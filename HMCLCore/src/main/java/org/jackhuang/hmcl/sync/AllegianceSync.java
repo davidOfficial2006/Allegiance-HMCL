@@ -190,7 +190,7 @@ public final class AllegianceSync {
         }
     }
 
-    /// Requires a real Mods directory, a DCTweaks JAR identity, and an unambiguous pack-version clue.
+    /// Requires DCTweaks plus an unambiguous folder or original CurseForge manifest version.
     public static String identify(Path directory) throws IOException {
         Path mods = directory.resolve("mods");
         if (!Files.isDirectory(mods, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(mods))
@@ -205,6 +205,24 @@ public final class AllegianceSync {
                 if (name.endsWith("-natives") && matcher.matches()) versions.add(matcher.group(1));
             }
         }
+        // HMCL allows arbitrary instance names and now uses natives-windows-x86_64.
+        // Its retained CurseForge manifest identifies the imported pack independently of either name.
+        Path packManifest = directory.resolve("manifest.json");
+        if (Files.isRegularFile(packManifest, LinkOption.NOFOLLOW_LINKS) && Files.size(packManifest) <= MAX_JSON) {
+            try {
+                JsonObject imported = JsonParser.parseString(Files.readString(packManifest)).getAsJsonObject();
+                String name = optional(imported, "name");
+                String version = optional(imported, "version");
+                var namedVersion = PACK.matcher(name);
+                if ("minecraftModpack".equals(optional(imported, "manifestType"))
+                        && imported.has("manifestVersion") && imported.get("manifestVersion").getAsInt() == 1
+                        && version.matches("\\d+\\.\\d+\\.\\d+")
+                        && (name.equalsIgnoreCase("DeceasedCraft_CB")
+                            || namedVersion.matches() && version.equals(namedVersion.group(1)))) versions.add(version);
+            } catch (RuntimeException ignored) {
+                // Invalid manifests provide no identity evidence; existing folder checks still apply.
+            }
+        }
         boolean tweaks = false;
         try (var files = Files.list(mods)) {
             for (Path file : files.filter(p -> p.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".jar")).toList()) {
@@ -214,7 +232,7 @@ public final class AllegianceSync {
             }
         }
         if (!tweaks || versions.size() != 1)
-            throw new UnrecognizedPackException("无法确认 DeceasedCraft 客户端及基础版本，需要 DCTweaks 和唯一的 DeceasedCraft_CB_版本号目录线索");
+            throw new UnrecognizedPackException("无法确认 DeceasedCraft 客户端及基础版本，需要 DCTweaks 和唯一的整合包清单或目录版本线索");
         return versions.iterator().next();
     }
 

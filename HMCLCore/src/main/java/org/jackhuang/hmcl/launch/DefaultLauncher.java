@@ -43,6 +43,17 @@ public class DefaultLauncher extends Launcher {
         super(instance, manifest, authInfo, options, listener, daemon);
     }
 
+    /// Carries explicit Windows runtime fixes to the child JVM while preserving game-specific overrides.
+    /// Copies no credentials, custom trust-store paths or unrelated launcher properties.
+    static void inheritWindowsRuntimeOptions(CommandBuilder command) {
+        if (OperatingSystem.CURRENT_OS != OperatingSystem.WINDOWS) return;
+        if ("Windows-ROOT".equals(System.getProperty("javax.net.ssl.trustStoreType")))
+            command.addDefault("-Djavax.net.ssl.trustStoreType=", "Windows-ROOT");
+        @Nullable String socketTemp = System.getProperty("jdk.net.unixdomain.tmpdir");
+        if (socketTemp != null && !socketTemp.isBlank())
+            command.addDefault("-Djdk.net.unixdomain.tmpdir=", socketTemp);
+    }
+
     private Command generateCommandLine(Path nativeFolder) throws IOException {
         CommandBuilder res = new CommandBuilder();
 
@@ -102,6 +113,7 @@ public class DefaultLauncher extends Launcher {
                 res.addDefault("-XX:MetaspaceSize=", options.getMetaspace() + "m");
 
         res.addAllDefaultWithoutParsing(options.getJavaArguments());
+        inheritWindowsRuntimeOptions(res);
 
         Charset encoding = OperatingSystem.NATIVE_CHARSET;
         String fileEncoding = res.addDefault("-Dfile.encoding=", encoding.name());

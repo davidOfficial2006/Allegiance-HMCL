@@ -3,6 +3,7 @@
 package org.jackhuang.hmcl.download;
 
 import org.glavo.url.WebURL;
+import org.jackhuang.hmcl.addon.repository.CurseForgeMetadata;
 import org.jackhuang.hmcl.download.cleanroom.CleanroomRemoteVersion;
 import org.jackhuang.hmcl.download.fabric.FabricRemoteVersion;
 import org.jackhuang.hmcl.download.forge.ForgeRemoteVersion;
@@ -150,7 +151,7 @@ public final class HMCLDownloadProvider extends DownloadProvider {
                 // https://github.com/mcmod-info-mirror/mcim-rust-api
                 new SimpleRule("https://api.modrinth.com", null, "https://mod.mcimirror.top/modrinth"),
                 new SimpleRule("https://cdn.modrinth.com", null, "https://mod.mcimirror.top"),
-                new SimpleRule("https://api.curseforge.com", null, "https://mod.mcimirror.top/curseforge"),
+                new SimpleRule(CurseForgeMetadata.OFFICIAL, null, CurseForgeMetadata.MCIM),
                 new SimpleRule("https://edge.forgecdn.net", null, "https://mod.mcimirror.top")
         );
     }

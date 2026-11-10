@@ -77,3 +77,6 @@ language-subtag-registry
 !/.gemini/config.yaml
 .codex
 /.gradle-*/
+
+# Local maintenance script bytecode (release archives live outside this source tree).
+/maintenance/__pycache__/

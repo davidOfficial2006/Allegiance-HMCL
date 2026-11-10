@@ -23,6 +23,23 @@ import static org.junit.jupiter.api.Assertions.*;
 /// Contract and transaction tests use loopback HTTP via the package-private test connector; production requires HTTPS.
 @NotNullByDefault
 class AllegianceSyncTest {
+    /// A renamed HMCL import keeps its pack identity through the original CurseForge manifest.
+    @Test void importedManifestIdentifiesRenamedPackAndRejectsConflicts() throws Exception {
+        try (Fixture f = new Fixture("DeceasedCraft_CB")) {
+            Path imported = f.root.resolve("manifest.json");
+            Files.writeString(imported, "{\"manifestType\":\"minecraftModpack\",\"manifestVersion\":1,\"name\":\"DeceasedCraft_CB\",\"version\":\"5.11.9\"}");
+            assertEquals("5.11.9", AllegianceSync.identify(f.root));
+            assertTrue(f.sync(w -> true).synchronizeIfRecognized(w -> fail(w)));
+            Files.createDirectory(f.root.resolve("DeceasedCraft_CB_5.11.19-natives"));
+            assertThrows(AllegianceSync.UnrecognizedPackException.class, () -> AllegianceSync.identify(f.root));
+            Files.delete(f.root.resolve("DeceasedCraft_CB_5.11.19-natives"));
+            Files.writeString(imported, "{\"manifestType\":\"minecraftModpack\",\"manifestVersion\":1,\"name\":\"OtherPack\",\"version\":\"5.11.9\"}");
+            assertThrows(AllegianceSync.UnrecognizedPackException.class, () -> AllegianceSync.identify(f.root));
+            Files.writeString(imported, "{\"manifestType\":\"minecraftModpack\",\"manifestVersion\":1,\"name\":\"DeceasedCraft_CB\",\"version\":\"5.11.9\"}");
+            Files.delete(f.root.resolve("mods/DCTweaks_5.11.9.jar"));
+            assertThrows(AllegianceSync.UnrecognizedPackException.class, () -> AllegianceSync.identify(f.root));
+        }
+    }
     /// Temporary instance directories supplied by JUnit.
     @TempDir static @Nullable Path temp;
     /// Holds a disposable real pack and a bounded loopback publication service.

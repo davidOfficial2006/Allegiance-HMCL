@@ -204,6 +204,8 @@ public final class CurseCompletionTask extends Task<Void> {
     /// @return the destination, or `null` when the file already exists
     /// @throws IOException if CurseForge metadata cannot be read
     private @Nullable Path guessFilePath(CurseManifestFile file, DownloadProvider downloadProvider, Path resourcePacksRoot, Path shaderPacksRoot) throws IOException {
+        // Installed Mods need no project-class lookup. Preserve HMCL's existing presence check.
+        if (modManager.hasSimpleMod(file.fileName())) return null;
         RemoteAddon mod = CurseForgeRemoteAddonRepository.getInstance().getAddonById(downloadProvider, Integer.toString(file.projectID()));
         int classID = ((CurseForgeRemoteAddonRepository.CurseAddon) mod.data()).classId();
         String fileName = file.fileName();
