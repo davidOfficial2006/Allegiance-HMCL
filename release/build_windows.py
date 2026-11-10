@@ -103,5 +103,5 @@ if __name__ == '__main__':
     parser.add_argument('--work', type=Path, required=True)
     parser.add_argument('--runtime-archive', type=Path)
     parser.add_argument('--runtime-image', type=Path, help='Reuse the verified runtime from an earlier delivery')
-    parser.add_argument('--version', default='maint-20261110.3')
+    parser.add_argument('--version', default='maint-20261110.4')
     build(parser.parse_args())

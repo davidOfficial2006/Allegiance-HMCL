@@ -102,7 +102,12 @@ public final class MainPage extends StackPane implements DecoratorPage {
         titleNode.setPadding(new Insets(0, 0, 0, 2));
         titleNode.setAlignment(Pos.CENTER_LEFT);
 
-        ImageView titleIcon = new ImageView(FXUtils.newBuiltinImage("/assets/img/icon-title.png"));
+        // Use full-resolution artwork and a larger display size instead of enlarging the 24px thumbnail.
+        ImageView titleIcon = new ImageView(FXUtils.newBuiltinImage("/assets/img/icon@8x.png"));
+        titleIcon.setFitWidth(36);
+        titleIcon.setFitHeight(36);
+        titleIcon.setPreserveRatio(true);
+        titleIcon.setSmooth(false);
         Label titleLabel = new Label();
         titleLabel.textProperty().bind(Controllers.launcherTitleProperty());
         if (I18n.isUpsideDown()) {

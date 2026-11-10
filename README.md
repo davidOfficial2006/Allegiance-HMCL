@@ -4,7 +4,7 @@
 
 ## 玩家下载
 
-前往 [最新版 Release](https://github.com/davidOfficial2006/Allegiance-HMCL/releases/latest)，下载 **Allegiance-HMCL-maint-20261110.3-Windows-x64.zip**。完整解压后打开文件夹内的 **Allegiance-HMCL.exe**。
+前往 [最新版 Release](https://github.com/davidOfficial2006/Allegiance-HMCL/releases/latest)，下载 **Allegiance-HMCL-maint-20261110.4-Windows-x64.zip**。完整解压后打开文件夹内的 **Allegiance-HMCL.exe**。
 
 **已经内置启动器所需的 Java 21 和 JavaFX，无需安装 Java，也不使用 CMD。** EXE、app、runtime 必须保持在同一文件夹，不能只复制一个 EXE。需要桌面入口时创建快捷方式。
 
@@ -35,9 +35,9 @@ Release 仅提供两个附件：对应源码 ZIP 和包含 EXE、Java、JavaFX �
 需要 Windows、JDK 21 和 Python 3.11+。在仓库根目录执行：
 
 ```powershell
-$env:VERSION_ROOT = '3.17-allegiance.maint-20261110.3'
+$env:VERSION_ROOT = '3.17-allegiance.maint-20261110.4'
 .\gradlew.bat :HMCLCore:test --tests 'org.jackhuang.hmcl.sync.AllegianceSyncTest' --tests 'org.jackhuang.hmcl.addon.repository.CurseForge*Test' --tests 'org.jackhuang.hmcl.launch.DefaultLauncherRuntimeTest' :HMCL:shadowJar
-python release/build_windows.py --jdk $env:JAVA_HOME --jar "$PWD/HMCL/build/libs/HMCL-3.17-allegiance.maint-20261110.3.SNAPSHOT.jar" --output "$PWD/build/player" --work "$PWD/build/runtime-package"
+python release/build_windows.py --jdk $env:JAVA_HOME --jar "$PWD/HMCL/build/libs/HMCL-3.17-allegiance.maint-20261110.4.SNAPSHOT.jar" --output "$PWD/build/player" --work "$PWD/build/runtime-package"
 ```
 
 打包脚本下载官方 BellSoft Liberica JRE Full，核对固定 SHA256，并通过 JDK jpackage 生成应用镜像。可用 `--runtime-archive` 指定已经下载的同一官方 ZIP；不会覆盖已有交付目录或玩家数据。供应者链接、版本和校验值随包记录，运行环境许可证保留在 runtime 中。

@@ -1,5 +1,5 @@
 {
-  "version": "maint-20261110.3",
+  "version": "maint-20261110.4",
   "tested_at_utc": "2026-11-10T16:43:16.241868+00:00",
   "selected_java_tests": {
     "tests": 28,
@@ -30,5 +30,16 @@
     "window_icon": "Provided icon observed in title bar",
     "selected_java_tests": "28 passed in prior runtime delivery; not rerun for image resources and one property override",
     "default_title": "unchanged without override"
+  },
+  "large_icon_verification": {
+    "tested_at_utc": "2026-11-10T17:18:09.431596+00:00",
+    "build": "passed",
+    "display_size_before_px": 24,
+    "display_size_after_px": 36,
+    "resource_size_px": 256,
+    "preserve_ratio": true,
+    "smooth": false,
+    "real_gui": "larger icon visible; title and window controls remained aligned",
+    "local_custom_title_and_configuration": "preserved"
   }
 }
