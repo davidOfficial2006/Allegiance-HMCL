@@ -142,7 +142,7 @@ public class MicrosoftService {
         MinecraftLoginWithXBoxResponse minecraftResponse = HttpRequest
                 .POST("https://api.minecraftservices.com/authentication/login_with_xbox")
                 .json(mapOf(pair("identityToken", "XBL3.0 x=" + uhs + ";" + minecraftXstsResponse.token)))
-                .retry(5)
+                .retry(1)
                 .accept("application/json").getJson(MinecraftLoginWithXBoxResponse.class);
 
         long notAfter = minecraftResponse.expiresIn * 1000L + System.currentTimeMillis();

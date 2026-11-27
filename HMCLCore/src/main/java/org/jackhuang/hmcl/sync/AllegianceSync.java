@@ -99,8 +99,13 @@ public final class AllegianceSync {
 
     /// Skips only an unrecognized pack; recognized-pack download and integrity failures still propagate.
     public boolean synchronizeIfRecognized(Consumer<String> unavailable) throws IOException {
+        return synchronizeIfRecognized(unavailable, ignored -> { });
+    }
+
+    /// Reports the manifest requirements before checking or downloading the listed files.
+    public boolean synchronizeIfRecognized(Consumer<String> unavailable, Consumer<String> requirements) throws IOException {
         try {
-            synchronize();
+            synchronize(requirements);
             return true;
         } catch (UnrecognizedPackException e) {
             unavailable.accept("当前整合包无法同步，请检查所选游戏目录和整合包版本。\n\n"
@@ -111,6 +116,11 @@ public final class AllegianceSync {
 
     /// Identifies the pack, fetches both published modules, checks Mods first, then commits patches.
     public void synchronize() throws IOException {
+        synchronize(ignored -> { });
+    }
+
+    /// Synchronizes the selected pack and reports the dependency checklist after reading the manifests.
+    private void synchronize(Consumer<String> requirements) throws IOException {
         checkInterrupted();
         progress.accept("识别整合包目录");
         String base = identify(root);
@@ -158,6 +168,7 @@ public final class AllegianceSync {
                         }
                     }
                 }
+                requirements.accept(mods.size() + " 项 Mod，" + patches.size() + " 项补丁");
                 Path staging = safe(".allegiance-sync/staging-" + UUID.randomUUID());
                 Files.createDirectory(staging);
                 List<Change> changes = new ArrayList<>();

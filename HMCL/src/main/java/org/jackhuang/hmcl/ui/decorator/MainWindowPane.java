@@ -155,7 +155,16 @@ final class MainWindowPane extends StackPane {
         Region backgroundNode = new Region();
         backgroundNode.setMouseTransparent(true);
         StackPane.setAlignment(backgroundNode, Pos.BOTTOM_CENTER);
-        holder.onWeakChangeAndOperate(Themes.backgroundProperty(), background -> {
+        var serverWallpaper = org.jackhuang.hmcl.ui.main.LauncherCustomization.networkBackgroundProperty();
+        var effectiveBackground = Bindings.createObjectBinding(() -> {
+            @Nullable javafx.scene.image.Image image = serverWallpaper.getValue();
+            if (image == null) return Themes.backgroundProperty().get();
+            return new org.jackhuang.hmcl.theme.LauncherBackground(new Background(new javafx.scene.layout.BackgroundImage(
+                    image, javafx.scene.layout.BackgroundRepeat.NO_REPEAT, javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
+                    javafx.scene.layout.BackgroundPosition.CENTER,
+                    new javafx.scene.layout.BackgroundSize(1, 1, true, true, false, true))), 1.0);
+        }, Themes.backgroundProperty(), serverWallpaper);
+        holder.onWeakChangeAndOperate(effectiveBackground, background -> {
             double opacity = background.opacity();
             if (opacity >= 0.001) {
                 backgroundNode.setBackground(background.background());
@@ -165,6 +174,7 @@ final class MainWindowPane extends StackPane {
                 backgroundNode.setOpacity(0);
             }
         });
+        backgroundNode.getProperties().put("effective-background", effectiveBackground);
         return backgroundNode;
     }
 

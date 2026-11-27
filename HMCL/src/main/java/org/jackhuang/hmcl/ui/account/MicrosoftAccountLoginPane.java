@@ -31,7 +31,6 @@ import org.jackhuang.hmcl.ui.Controllers;
 import org.jackhuang.hmcl.ui.FXUtils;
 import org.jackhuang.hmcl.ui.WeakListenerHolder;
 import org.jackhuang.hmcl.ui.construct.*;
-import org.jackhuang.hmcl.upgrade.IntegrityChecker;
 import org.jackhuang.hmcl.util.QrCodeUtils;
 import org.jackhuang.hmcl.util.StringUtils;
 
@@ -127,12 +126,6 @@ public class MicrosoftAccountLoginPane extends JFXDialogLayout implements Dialog
         StackPane warningPane = new StackPane();
         rootContainer.getChildren().add(warningPane);
 
-        if (!IntegrityChecker.isOfficial()) {
-            var unofficialHintPane = new HintPane(MessageDialogPane.MessageType.WARNING);
-            unofficialHintPane.setSegment(i18n("unofficial.hint"));
-            warningPane.getChildren().setAll(unofficialHintPane);
-        }
-
         if (Accounts.OAUTH_CALLBACK.getClientId().isEmpty()) {
             HintPane snapshotHint = new HintPane(MessageDialogPane.MessageType.ERROR);
             snapshotHint.setSegment(i18n("account.methods.microsoft.snapshot"));
@@ -144,7 +137,7 @@ public class MicrosoftAccountLoginPane extends JFXDialogLayout implements Dialog
             loginButtonSpinner.setLoading(false);
 
             var hintPane = new HintPane(MessageDialogPane.MessageType.INFO);
-            hintPane.setText(i18n("account.methods.microsoft.hint"));
+            hintPane.setText(i18n("account.methods.microsoft.custom.hint") + "\n" + i18n("account.methods.microsoft.hint"));
             rootContainer.getChildren().add(hintPane);
         } else if (currentStep instanceof Step.StartAuthorizationCodeLogin) {
             loginButtonSpinner.setLoading(false);
@@ -173,7 +166,8 @@ public class MicrosoftAccountLoginPane extends JFXDialogLayout implements Dialog
 
             HintPane hintPane = new HintPane(MessageDialogPane.MessageType.INFO);
             hintPane.setSegment(
-                    i18n("account.methods.microsoft.methods.browser.hint", StringUtils.escapeXmlAttribute(wait.url()), wait.url()),
+                    i18n("account.methods.microsoft.custom.hint") + "\n"
+                            + i18n("account.methods.microsoft.methods.browser.hint", StringUtils.escapeXmlAttribute(wait.url()), wait.url()),
                     FXUtils::copyText
             );
 
@@ -195,9 +189,7 @@ public class MicrosoftAccountLoginPane extends JFXDialogLayout implements Dialog
             HBox.setHgrow(leftVBox, Priority.ALWAYS);
             HBox.setHgrow(rightVBox, Priority.ALWAYS);
 
-            String scanUri = "https://www.microsoft.com/link".equals(wait.verificationUri())
-                    ? "https://www.microsoft.com/link?otc=" + wait.userCode()
-                    : wait.verificationUri();
+            String scanUri = wait.verificationUri();
 
             var deviceHint = new HintPane(MessageDialogPane.MessageType.INFO);
             deviceHint.setSegment(i18n("account.methods.microsoft.methods.device.hint",

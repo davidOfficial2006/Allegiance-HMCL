@@ -1,0 +1,7 @@
+{
+  "public_key": "MCowBQYDK2VwAyEAmlpp85IKYIIlTcwItNa5haVE5WBQij8ejvs9L0GddYM=",
+  "envelope": {
+    "payload": "eyJzY2hlbWEiOjEsInJldmlzaW9uIjoxLCJjb25maWciOnsidGl0bGUiOiIiLCJzdWJ0aXRsZSI6IiIsInRpdGxlX2NvbG9yIjoiIiwidGl0bGVfc2l6ZSI6MCwiYW5ub3VuY2VtZW50X2VuYWJsZWQiOmZhbHNlLCJhbm5vdW5jZW1lbnRfdGl0bGUiOiLmnI3liqHlmajlhazlkYoiLCJhbm5vdW5jZW1lbnRfYm9keSI6IuadpeiHqiBQeXRob24g55qE5YWs5ZGKIiwic2VydmVyX2FkZHJlc3MiOiIiLCJtZW1vcnlfbWIiOjAsImZvbnQiOm51bGwsImJhY2tncm91bmQiOm51bGx9fQ==",
+    "signature": "F/98J4ycxm26mm7BzxNOM2mhCoXqfX1qO5YefnnJ5Lzj/LKNBdpQ9vyTGN5SJsP6I0cjA9wtIC+oyWbUIFeeDA=="
+  }
+}

@@ -111,22 +111,26 @@ public final class OAuthServer extends NanoHTTPD implements OAuth.Session {
 
         Map<String, String> query = mapOf(NetworkUtils.parseQuery(parameters));
 
-        String code = query.get("code");
-        if (code != null) {
-            if (this.state.equals(query.get("state"))) {
-                idToken = query.get("id_token");
-                future.complete(code);
-            } else if (query.containsKey("state")) {
-                LOG.warning("Failed to authenticate: invalid state in parameters");
-                future.completeExceptionally(new AuthenticationException("Failed to authenticate: invalid state"));
-            } else {
-                LOG.warning("Failed to authenticate: missing state in parameters");
-                future.completeExceptionally(new AuthenticationException("Failed to authenticate: missing state"));
-            }
-        } else {
-            LOG.warning("Failed to authenticate: missing authorization code in parameters");
-            future.completeExceptionally(new AuthenticationException("Failed to authenticate: missing authorization code"));
+        if (!this.state.equals(query.get("state"))) {
+            LOG.warning("Rejected Microsoft OAuth callback: missing or invalid state");
+            return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT,
+                    "Invalid login callback. Use the browser page opened by your latest launcher login attempt.");
         }
+
+        String code = query.get("code");
+        if (code == null || code.isBlank()) {
+            LOG.warning("Microsoft OAuth callback for the current attempt had no authorization code");
+            future.completeExceptionally(new AuthenticationException("Microsoft did not return an authorization code"));
+            return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT,
+                    "Microsoft did not complete authorization. Return to the launcher and try signing in again.");
+        }
+
+        idToken = query.get("id_token");
+        if (!future.complete(code)) {
+            return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT,
+                    "This login attempt is no longer active. Start a new login from the launcher.");
+        }
+        LOG.info("Microsoft OAuth callback accepted by the current login attempt");
 
         String html;
         try {

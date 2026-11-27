@@ -126,7 +126,7 @@ public class OAuth {
             TokenResponse tokenResponse = HttpRequest.POST(tokenURL)
                     .form(
                             pair("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
-                            pair("code", deviceTokenResponse.deviceCode),
+                            pair("device_code", deviceTokenResponse.deviceCode),
                             pair("client_id", options.callback.getClientId()))
                     .ignoreHttpCode()
                     .retry(5)
@@ -145,6 +145,7 @@ public class OAuth {
                 continue;
             }
 
+            handleErrorResponse(tokenResponse);
             options.callback.loginCompletedDeviceCode();
 
             return new Result(tokenResponse.accessToken, tokenResponse.refreshToken);

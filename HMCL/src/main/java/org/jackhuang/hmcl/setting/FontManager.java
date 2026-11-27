@@ -83,6 +83,17 @@ public final class FontManager {
     private static final ObjectProperty<FontReference> font = new SimpleObjectProperty<>();
 
     static {
+        // Register a previously accepted remote font without replacing the player's chosen family.
+        try {
+            Path cache = Metadata.HMCL_LOCAL_HOME.resolve("launcher-customization");
+            Path keyFile = Metadata.CURRENT_DIRECTORY.resolve("launcher-config-public-key.txt");
+            String key = System.getProperty("hmcl.launcher.config.publicKey", "");
+            if (key.isBlank() && Files.isRegularFile(keyFile) && Files.size(keyFile) < 4096) key = Files.readString(keyFile).strip();
+            if (!key.isBlank()) {
+                @Nullable Path selected = org.jackhuang.hmcl.sync.LauncherConfigClient.selectedFont(cache, key);
+                if (selected != null) Font.loadFont(selected.toUri().toString(), DEFAULT_FONT_SIZE);
+            }
+        } catch (java.io.IOException | RuntimeException ignored) { }
         updateFont();
         LOG.info("Font: " + (font.get() != null ? font.get().family() : "System"));
     }

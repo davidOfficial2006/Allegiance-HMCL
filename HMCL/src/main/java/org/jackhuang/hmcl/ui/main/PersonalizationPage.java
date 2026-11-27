@@ -388,6 +388,7 @@ public class PersonalizationPage extends StackPane {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
         content.setFillWidth(true);
+        content.getChildren().add(LauncherCustomization.controls());
         ScrollPane scrollPane = new ScrollPane(content);
         FXUtils.smoothScrolling(scrollPane);
         scrollPane.setFitToWidth(true);

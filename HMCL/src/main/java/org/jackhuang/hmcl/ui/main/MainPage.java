@@ -91,7 +91,7 @@ public final class MainPage extends StackPane implements DecoratorPage {
             BindingMapping.of(GameDirectoryManager.selectedRepositoryProperty())
                     .flatMap(HMCLGameRepository::snapshotProperty);
 
-    private TransitionPane announcementPane;
+    private @Nullable TransitionPane announcementPane;
     private final StackPane updatePane;
     private final JFXButton menuButton;
 
@@ -168,6 +168,8 @@ public final class MainPage extends StackPane implements DecoratorPage {
             getChildren().add(announcementPane);
         }
 
+        LauncherCustomization.attach(this, titleLabel, announcementPane);
+
         updatePane = new StackPane();
         updatePane.setVisible(false);
         updatePane.getStyleClass().add("bubble");
@@ -233,7 +235,6 @@ public final class MainPage extends StackPane implements DecoratorPage {
                     @Override
                     public void accept(@Nullable HMCLGameInstance currentGame) {
                         if (currentGame == null) {
-                            launchLabel.setText(i18n("instance.launch.empty"));
                             currentLabel.setText(null);
                             graphic.getChildren().setAll(launchLabel);
                             FXUtils.setOnActionWithCooldown(launchButton, MainPage.this::launchNoGame);
@@ -241,7 +242,6 @@ public final class MainPage extends StackPane implements DecoratorPage {
                                 tooltip = new Tooltip(i18n("instance.launch.empty.tooltip"));
                             FXUtils.installFastTooltip(launchButton, tooltip);
                         } else {
-                            launchLabel.setText(i18n("instance.launch"));
                             currentLabel.setText(currentGame.getId().toString());
                             graphic.getChildren().setAll(launchLabel, currentLabel);
                             FXUtils.setOnActionWithCooldown(launchButton, MainPage.this::launch);
@@ -251,6 +251,7 @@ public final class MainPage extends StackPane implements DecoratorPage {
                     }
                 });
 
+                LauncherCustomization.bindLaunchButton(launchButton, launchLabel, currentLabel, currentGameProperty().isNotNull());
                 launchButton.setGraphic(graphic);
             }
 

@@ -3,6 +3,15 @@
 package org.jackhuang.hmcl.game;
 
 import org.jackhuang.hmcl.sync.AllegianceSync;
+import javafx.animation.PauseTransition;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
+import org.jackhuang.hmcl.ui.DialogUtils;
+import java.nio.file.Files;
+import java.util.concurrent.CancellationException;
 import org.jackhuang.hmcl.task.Task;
 import org.jackhuang.hmcl.task.Schedulers;
 import org.jackhuang.hmcl.ui.Controllers;
@@ -28,6 +37,17 @@ public final class AllegianceSyncTask extends Task<Void> {
     /// Captured selected game instance; isolation settings resolve its real run directory.
     private final HMCLGameInstance instance;
 
+    /// First-alignment dialog and labels, accessed only from the JavaFX thread.
+    private @Nullable VBox alignment;
+    /// Main dependency result and detailed download progress, accessed only from JavaFX.
+    private @Nullable Label dependencyStatus;
+    /// Current operation shown below the checklist.
+    private @Nullable Label detail;
+    /// Cancellation requested from the alignment dialog.
+    private volatile boolean cancelledByPlayer;
+    /// Whether the user had to decide whether to continue with unresolved conflicts.
+    private boolean hadConflict;
+
     /// Creates a cancellable launch task.
     private AllegianceSyncTask(HMCLGameInstance instance) { this.instance = instance; }
 
@@ -45,27 +65,89 @@ public final class AllegianceSyncTask extends Task<Void> {
 
     /// Runs after game/modpack completion; an unidentified pack shows an informational notice and continues.
     @Override public void execute() throws IOException {
+        boolean firstAlignment = !Files.isRegularFile(instance.getRunDirectory().resolve(".allegiance-sync/last-sync.json"));
+        boolean completed = false;
         try {
-            new AllegianceSync(instance.getRunDirectory(),
+            completed = new AllegianceSync(instance.getRunDirectory(),
                     URI.create(System.getProperty("hmcl.allegiance.endpoint", AllegianceSync.DEFAULT_ENDPOINT)),
-                    message -> { setName(message); LOG.info("[Allegiance Sync] " + message); }, this::confirm, this::isCancelled)
+                    message -> {
+                        setName(message);
+                        LOG.info("[Allegiance Sync] " + message);
+                        if (firstAlignment) runInFX(() -> {
+                            if (detail != null) detail.setText(message);
+                        });
+                    }, this::confirm, () -> isCancelled() || cancelledByPlayer)
                     .synchronizeIfRecognized(message -> {
                         LOG.warning("[Allegiance Sync] " + message);
                         runInFX(() -> Controllers.dialog(message, "当前整合包无法同步", MessageType.INFO));
+                    }, requirements -> {
+                        if (firstAlignment) runInFX(() -> showAlignment(requirements));
                     });
+            if (cancelledByPlayer) throw new CancellationException();
         } catch (IOException e) {
+            if (cancelledByPlayer) throw new CancellationException();
             LOG.warning("[Allegiance Sync] " + e.getMessage(), e);
             throw new Failure(e);
+        } finally {
+            if (firstAlignment) {
+                boolean success = completed && !cancelledByPlayer && !isCancelled();
+                boolean conflict = hadConflict;
+                runInFX(() -> finishAlignment(success, conflict));
+            }
         }
+    }
+
+    /// Shows the checklist after the base game is ready and the server manifest has been read.
+    private void showAlignment(String requirements) {
+        if (isCancelled() || cancelledByPlayer) return;
+        Label heading = new Label("与服务器对齐");
+        heading.setStyle("-fx-font-size:16px;-fx-font-weight:bold;");
+        Label version = new Label("游戏版本： " + instance.getVersion() + "   ✓");
+        Label dependencies = new Label("服务器依赖： " + requirements + "   检查中…");
+        Label progress = new Label("正在核对已安装文件");
+        progress.setWrapText(true);
+        Button cancel = new Button("取消启动");
+        VBox pane = new VBox(12, heading, version, dependencies, progress, cancel);
+        pane.getStyleClass().add("task-executor-dialog-layout");
+        pane.setPadding(new Insets(20));
+        pane.setPrefWidth(460);
+        cancel.setOnAction(event -> {
+            cancelledByPlayer = true;
+            progress.setText("正在取消…");
+            cancel.setDisable(true);
+        });
+        alignment = pane;
+        dependencyStatus = dependencies;
+        detail = progress;
+        Controllers.dialog(pane);
+    }
+
+    /// Marks verified requirements complete and returns focus to the normal launch dialog.
+    private void finishAlignment(boolean success, boolean conflict) {
+        @Nullable VBox pane = alignment;
+        if (pane == null) return;
+        if (!success) {
+            DialogUtils.close(pane);
+            return;
+        }
+        if (dependencyStatus != null) {
+            String previous = dependencyStatus.getText().replace("检查中…", "");
+            dependencyStatus.setText(previous + (conflict ? "⚠ 已确认兼容风险" : "✓"));
+        }
+        pane.getChildren().get(pane.getChildren().size() - 1).setDisable(true);
+        PauseTransition pause = new PauseTransition(Duration.seconds(1.2));
+        pause.setOnFinished(event -> DialogUtils.close(pane));
+        pause.play();
     }
 
     /// Waits only on the background task; cancel/close returns false and leaves conflict JARs untouched.
     private boolean confirm(String warning) {
+        hadConflict = true;
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         runInFX(() -> Controllers.confirm(warning, "客户端兼容风险", MessageType.WARNING,
                 () -> result.complete(true), () -> result.complete(false)));
         try {
-            while (!isCancelled()) {
+            while (!isCancelled() && !cancelledByPlayer) {
                 try { return result.get(250, TimeUnit.MILLISECONDS); }
                 catch (TimeoutException ignored) { }
             }
